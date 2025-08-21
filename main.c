@@ -17,7 +17,7 @@ int getlen(char* str, int maxlen){
 void strip_front(char* str, int maxlen){
   int n = 0;
   while((str[n] == ' ') || (str[n] == '\t') && (n < maxlen)) n++;
-// TODO:this for can be done with a memmove, optimize in the future!
+
   for (int i = n; i < maxlen; i++){
     str[i-n] = str[i];
   }
