@@ -39,7 +39,7 @@ void matrix(double phi, mat2x2* target){
 
 void compose(mat2x2 first, double phi, mat2x2* result){
   mat2x2 temp = new_mat2x2();
-  get_rotation_matrix(phi, &temp);
+  matrix(phi, &temp);
 
   double OO = (first[0][0] * temp[0][0]) + (first[0][1] * temp[1][0]);
   double OI = (first[0][0] * temp[0][1]) + (first[0][1] * temp[1][1]);
