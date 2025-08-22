@@ -30,33 +30,33 @@ void delete_vec2(vec2 vec){
   free(vec);
 }
 
-void matrix(double phi, mat2x2* target){
-  (*target)[0][0] = cos(phi);
-  (*target)[0][1] = sin(phi) * -1;
-  (*target)[1][0] = sin(phi);
-  (*target)[1][1] = cos(phi);
+void matrix(double phi, mat2x2 target){
+  target[0][0] = cos(phi);
+  target[0][1] = sin(phi) * -1;
+  target[1][0] = sin(phi);
+  target[1][1] = cos(phi);
 }
 
-void compose(mat2x2 first, double phi, mat2x2* result){
+void compose(mat2x2 first, double phi, mat2x2 result){
   mat2x2 temp = new_mat2x2();
-  matrix(phi, &temp);
+  matrix(phi, temp);
 
   double OO = (first[0][0] * temp[0][0]) + (first[0][1] * temp[1][0]);
   double OI = (first[0][0] * temp[0][1]) + (first[0][1] * temp[1][1]);
   double IO = (first[1][0] * temp[0][0]) + (first[1][1] * temp[1][0]);
   double II = (first[1][0] * temp[0][1]) + (first[1][1] * temp[1][1]);
-  (*result)[0][0] = OO; (*result)[1][0] = IO; (*result)[0][1] = OI; (*result)[1][1] = II;
+  result[0][0] = OO; result[1][0] = IO; result[0][1] = OI; result[1][1] = II;
 
   delete_2x2mat(temp);
 }
 
-void rotate_vec(mat2x2 first, vec2 second, vec2* result){
+void rotate_vec(mat2x2 first, vec2 second, vec2 result){
   double O = (first[0][0] * second[0]) + (first[0][1] * second[1]);
   double I = (first[1][0] * second[0]) + (first[1][1] * second[1]);
-  (*result)[0] = O; (*result)[1] = I; 
+  result[0] = O; result[1] = I; 
 }
 
-void inverse_matrix(mat2x2* mat){
-  (*mat)[0][1] = (*mat)[0][1] * -1;
-  (*mat)[1][0] = (*mat)[1][0] * -1;
+void inverse_matrix(mat2x2 mat){
+  mat[0][1] = mat[0][1] * -1;
+  mat[1][0] = mat[1][0] * -1;
 }
