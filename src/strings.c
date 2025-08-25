@@ -1,7 +1,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef struct {
   size_t len;
@@ -23,7 +22,9 @@ string create_string(const char *str, size_t len) {
   result.start = (char *)malloc(sizeof(char) * (len + 1));
   if (!result.start)
     return string_error();
-  memcpy(result.start, str, len);
+  for (int i = 0; i < len; i++) {
+    result.start[i] = str[i];
+  }
   result.start[len] = '\0';
   return result;
 }
@@ -38,7 +39,9 @@ string string_from_cstring(const char *lit) {
   result.start = (char *)malloc(sizeof(char) * (n + 1));
   if (!result.start)
     return string_error();
-  memcpy(result.start, lit, n + 1);
+  for (int i = 0; i <= n; i++) {
+    result.start[i] = lit[i];
+  }
   return result;
 }
 
@@ -71,7 +74,7 @@ int compare_strings(string O, string I) {
 }
 
 int string_to_int(string str) {
-  bool negative = 0;
+  int negative = 0;
   int result = 0;
   if (str.start[str.cur] == '-') {
     negative = 1;
@@ -93,8 +96,8 @@ int string_to_int(string str) {
 }
 
 double string_to_double(string str) {
-  bool negative = 0;
-  bool integer = 1;
+  int negative = 0;
+  int integer = 1;
   int num_int = 0;
   int num_dec = 0;
   int point_index = 0;
