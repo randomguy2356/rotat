@@ -9,7 +9,7 @@ int quit = 0;
 
 double truncate_double(double num, int prec) {
   double n = pow(10, prec);
-  return floor(num * n) / n;
+  return trunc(num * n) / n;
 }
 
 void exec_rotate(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
@@ -64,6 +64,14 @@ void exec_inverse(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
 void exec_pvector(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
   double length = sqrt(pow(cur_vec[0], 2) + pow(cur_vec[1], 2));
   double angle = (asin(cur_vec[1] / length) / M_PI) * 180;
+
+  if (cur_vec[0] < 0) {
+    angle = 180 - angle;
+  }
+  if (cur_vec[0] > 0 && cur_vec[1] <= 0) {
+    angle = 360 - angle;
+  }
+
   printf("current vector:\n"
          "X = %f\n"
          "Y = %f\n"
