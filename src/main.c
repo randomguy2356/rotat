@@ -192,7 +192,14 @@ int main(void) {
   while (!quit) {
     printf("> ");
     if (!fgets(buff, 1024, stdin)) {
-      printf("fgets failed. (dunno why)");
+      if (feof(stdin)) {
+        break;
+      }
+      if (ferror(stdin)) {
+        printf("stdin error. bye!\n");
+        break;
+      }
+      printf("fgets failed. (dunno why)\n");
       continue;
     }
     size_t n = 0;
@@ -246,7 +253,7 @@ int main(void) {
     free(arg2.start);
   }
 
-  for (int i = 0; i < 9; i++) {
+  for (int i = 0; i < 10; i++) {
     free(commands[i].start);
   }
 
