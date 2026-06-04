@@ -19,7 +19,7 @@ void exec_rotate(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
 void exec_vector(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
   double x = string_to_double(arg1);
   double y = string_to_double(arg2);
-  if (x == NAN || y == NAN) {
+  if (isnan(x) || isnan(y)) {
     printf("no vector created.\n");
     return;
   }
@@ -30,7 +30,7 @@ void exec_vector(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
 void exec_polvector(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
   double r = string_to_double(arg1);
   double phi = string_to_double(arg2);
-  if (r == NAN || phi == NAN) {
+  if (isnan(r) || isnan(phi)) {
     printf("no vector created.\n");
     return;
   }
@@ -44,7 +44,7 @@ void exec_polvector(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
 
 void exec_matrix(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
   double degrees = string_to_double(arg1);
-  if (degrees == NAN) {
+  if (isnan(degrees)) {
     printf("no matrix created.\n");
     return;
   }
