@@ -193,6 +193,7 @@ int main(void) {
     printf("> ");
     if (!fgets(buff, 1024, stdin)) {
       if (feof(stdin)) {
+        printf("\n");
         break;
       }
       if (ferror(stdin)) {
