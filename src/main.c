@@ -1,9 +1,17 @@
 #include "rotmath.h"
 #include "strings.h"
+#include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(_WIN32)
+#include <io.h>
+
+#elif defined(__unix__) || defined(__APPLE__)
+#include <unistd.h>
+#endif
 
 int quit = 0;
 
@@ -154,27 +162,80 @@ void exec_exit(string arg1, string arg2, mat2x2 cur_mat, vec2 cur_vec) {
   quit = 1;
 }
 
-void (*exec[10])(string, string, mat2x2, vec2) = {
-    exec_rotate,  exec_vector,  exec_polvector, exec_matrix, exec_compose,
-    exec_inverse, exec_pvector, exec_pmatrix,   exec_help,   exec_exit};
+int run_line(string input, string *commands,
+             void (*exec[])(string, string, mat2x2, vec2),
+             mat2x2 current_matrix, vec2 current_vector) {
+  string command;
+  string arg1;
+  string arg2;
 
-enum commands {
-  ROTATE,
-  VECTOR,
-  POLVECTOR,
-  MATRIX,
-  COMPOSE,
-  INVERSE,
-  PVECTOR,
-  PMATRIX,
-  HELP,
-  EXIT
-};
+  if (!input.start) {
+    printf("input failed to load (null pointer passed)");
+    return 1;
+  }
 
-char buff[1025];
+  skip_whitspc(&input);
+  command = split(&input);
+  if (!command.start) {
+    printf("failed to parse first token (null pointer passed)");
+    return 1;
+  }
+  skip_whitspc(&input);
+  arg1 = split(&input);
+  if (!arg1.start) {
+    printf("failed to parse second token (null pointer passed)");
+    return 1;
+  }
+  skip_whitspc(&input);
+  arg2 = split(&input);
+  if (!arg2.start) {
+    printf("failed to parse third token (null pointer passed)");
+    return 1;
+  }
 
-int main(void) {
+  int id = -1;
+  for (int i = 0; i < 10; i++) {
+    if (compare_strings(commands[i], command)) {
+      id = i;
+      break;
+    }
+  }
 
+  if (id == -1) {
+    printf("wrong command:");
+    fwrite(input.start, 1, input.len, stdout);
+    printf("\n");
+    return 1;
+  }
+
+  exec[id](arg1, arg2, current_matrix, current_vector);
+
+  free(input.start);
+  free(command.start);
+  free(arg1.start);
+  free(arg2.start);
+
+  return 0;
+}
+
+int is_terminal(FILE *f) {
+  if (f == NULL) {
+    return 0;
+  }
+
+#if defined(_WIN32)
+  return _isatty(fileno(f));
+#elif defined(__unix__) || defined(__APPLE__)
+  return isatty(fileno(f));
+#else
+  return 0;
+#endif
+}
+
+int f_run_program(FILE *script) {
+  char buff[1025] = {0};
+  int status = 0;
+  int terminal = is_terminal(script);
   vec2 current_vector = vector(1, 0);
   mat2x2 current_matrix = new_mat2x2();
 
@@ -185,22 +246,29 @@ int main(void) {
       string_from_cstring("pvector"),   string_from_cstring("pmatrix"),
       string_from_cstring("help"),      string_from_cstring("exit"),
   };
+
+  void (*exec[10])(string, string, mat2x2, vec2) = {
+      exec_rotate,  exec_vector,  exec_polvector, exec_matrix, exec_compose,
+      exec_inverse, exec_pvector, exec_pmatrix,   exec_help,   exec_exit};
+
   string input;
-  string command;
-  string arg1;
-  string arg2;
   while (!quit) {
-    printf("> ");
-    if (!fgets(buff, 1024, stdin)) {
-      if (feof(stdin)) {
+    if (terminal) {
+      printf("> ");
+      fflush(stdout);
+    }
+    if (!fgets(buff, sizeof(buff), script)) {
+      if (feof(script)) {
         printf("\n");
+        status = 1;
         break;
       }
-      if (ferror(stdin)) {
-        printf("stdin error. bye!\n");
+      if (ferror(script)) {
+        printf("file read error: %s\n", strerror(errno));
+        status = 1;
         break;
       }
-      printf("fgets failed. (dunno why)\n");
+      printf("fgets failed: %s\n", strerror(errno));
       continue;
     }
     size_t n = 0;
@@ -209,49 +277,7 @@ int main(void) {
     buff[n] = '\0';
 
     string input = string_from_cstring(buff);
-    if (!input.start) {
-      printf("input failed to load (null pointer passed)");
-      continue;
-    }
-
-    skip_whitspc(&input);
-    command = split(&input);
-    if (!command.start) {
-      printf("failed to parse first token (null pointer passed)");
-      continue;
-    }
-    skip_whitspc(&input);
-    arg1 = split(&input);
-    if (!arg1.start) {
-      printf("failed to parse second token (null pointer passed)");
-      continue;
-    }
-    skip_whitspc(&input);
-    arg2 = split(&input);
-    if (!arg2.start) {
-      printf("failed to parse third token (null pointer passed)");
-      continue;
-    }
-
-    int id = -1;
-    for (int i = 0; i < 10; i++) {
-      if (compare_strings(commands[i], command)) {
-        id = i;
-        break;
-      }
-    }
-
-    if (id == -1) {
-      printf("wrong command\n");
-      continue;
-    }
-
-    exec[id](arg1, arg2, current_matrix, current_vector);
-
-    free(input.start);
-    free(command.start);
-    free(arg1.start);
-    free(arg2.start);
+    run_line(input, commands, exec, current_matrix, current_vector);
   }
 
   for (int i = 0; i < 10; i++) {
@@ -260,4 +286,18 @@ int main(void) {
 
   delete_vec2(current_vector);
   delete_2x2mat(current_matrix);
+
+  return status;
+}
+
+int main(int argc, char *argv[]) {
+  if (argc > 1) {
+    FILE *script;
+    if (!(script = fopen(argv[1], "ro"))) {
+      printf("couldn't open file \"%s\": %s\n", argv[1], strerror(errno));
+      return 1;
+    }
+    return f_run_program(script);
+  }
+  f_run_program(stdin);
 }

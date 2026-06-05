@@ -1,0 +1,16 @@
+polvector 1 0
+matrix 0
+rotate
+pvector
+matrix 360
+rotate
+pvector
+matrix -360
+rotate
+pvector
+matrix 720
+rotate
+pvector
+matrix -720
+rotate
+pvector
